@@ -3,18 +3,12 @@ variable "secret_key" {}
 variable "subnet_id" {}
 variable "vpc_id" {}
 
+variable "terraform_ssh" {
+  default = "/home/likered/.ssh/terraform.pem"
+}
 variable "region" {
   default = "us-east-1"
 }
-
-variable "amis" {
-  type = "map"
-  default = {
-    "us-east-1" = "ami-b374d5a5"
-    "us-west-2" = "ami-4b32be2b"
-  } 
-}
-
 variable "key_pair_name" {
   default = "terraform"
 }
@@ -26,4 +20,12 @@ variable "ssh_port" {
 }
 variable "ssh_user" {
   default = "ubuntu"
+}
+
+variable "amis" {
+  type = "map"
+  default = {
+    "us-east-1" = "ami-b374d5a5"
+    "us-west-2" = "ami-4b32be2b"
+  }
 }

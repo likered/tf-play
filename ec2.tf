@@ -11,10 +11,10 @@ resource "aws_instance" "ec2-create-users" {
   vpc_security_group_ids = ["${aws_security_group.ec2-create-users.id}"]
   key_name      = "${var.key_pair_name}"
 
-  associate_public_ip_address = true
+  associate_public_ip_address = false
 
   tags {
-    Name = "${var.instance_name}"
+    Name = "${var.instance_name}-private"
   }
 }
  
@@ -46,14 +46,15 @@ resource "null_resource" "everything_provisioner" {
 
   connection {
     type = "ssh"
-    host = "${aws_instance.ec2-create-users.public_ip}"
+    host = "${aws_instance.ec2-create-users.private_ip}"
     user = "${var.ssh_user}"
     port = "${var.ssh_port}"
-    agent = false
+    private_key = "${file(var.terraform_ssh)}"
+    agent = true
   }
  
   provisioner "file" {
-    source      = "files/example-file.txt"
+    source      = "./example-file.txt"
     destination = "/tmp/example-file.txt"
   }
 
@@ -61,11 +62,11 @@ resource "null_resource" "everything_provisioner" {
     inline = [ 
       "echo 'this-is-2-now' >> /tmp/example-file.txt",
       "cat /tmp/example-file.txt",
-      "echo /tmp/example-file.txt > /tmp/new-example-file.txt"
+      "mv /tmp/example-file.txt /tmp/new-example-file.txt"
     ]   
   }
 
   provisioner "local-exec" {
-    command = "scp -i /root/.ssh/terraform.pem -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${var.ssh_user}@${aws_instance.ec2-create-users.public_ip}:/tmp/new-example-file.txt new-example-file.txt"
+    command = "scp -i ~/.ssh/terraform.pem -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${var.ssh_user}@${aws_instance.ec2-create-users.private_ip}:/tmp/new-example-file.txt new-example-file.txt"
   }
 }
